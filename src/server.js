@@ -13,7 +13,7 @@ const isLoggedIn = (req, res, next) => {
         next();
     } else {
         return res.status(401).json({
-            message: "please login first"
+            message: "please Login first"
         });
     };
 };
