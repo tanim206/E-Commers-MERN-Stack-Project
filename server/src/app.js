@@ -2,8 +2,9 @@ const express = require("express");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const createErrors = require("http-errors");
-const xssClean = require("xss-clean");
+// const xssClean = require("xss-clean");
 const rateLimit = require("express-rate-limit");
+const userRouter = require("./routers/userRouter");
 const app = express();
 
 const rateLimiter = rateLimit({
@@ -11,25 +12,23 @@ const rateLimiter = rateLimit({
   max: 5,
   message: "Too Many Request From This IP. Please Try Again",
 });
-
-app.use(xssClean());
+// app.use(xssClean());
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(userRouter);
 
-app.get("/test", rateLimiter, (req, res) => {
+app.use("/api/users",userRouter)
+
+
+app.get("/health", rateLimiter, (req, res) => {
   res.status(200).send({
     statusCode: "200",
-    message: "Hello World",
+    message: "ok",
   });
 });
-app.get("/api/users", (req, res) => {
-  console.log(req.body.id);
-  res.status(200).send({
-    statusCode: "200",
-    message: "User profile create",
-  });
-});
+
+
 // client Error
 app.use((req, res, next) => {
   next(createErrors(404, "route not found"));
