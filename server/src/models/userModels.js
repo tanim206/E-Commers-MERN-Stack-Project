@@ -1,8 +1,18 @@
-const users = [
-  { id: 1, name: "Md. Tanim", roll: 123 },
-  { id: 2, name: "Hussen Tanim", roll: 456 },
-  { id: 3, name: "Tayef", roll: 789 },
-];
+const { Schema } = require("mongoose");
 
-
-module.exports = users;
+const userSchema = new Schema({
+  name: {
+    type: String,
+    required: [true, "User name is required"],
+    trim: true,
+    minlength: [2, "User name must be at least 2 characters"],
+    maxlength: [30, "User name can be maximum 30 characters"],
+  },
+  name: {
+    type: String,
+    required: [true, "User name is required"],
+    trim: true,
+    minlength: [2, "User name must be at least 2 characters"],
+    maxlength: [30, "User name can be maximum 30 characters"],
+  },
+});
