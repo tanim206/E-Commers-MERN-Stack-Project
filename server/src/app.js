@@ -5,6 +5,7 @@ const createErrors = require("http-errors");
 // const xssClean = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const userRouter = require("./routers/userRouter");
+const seedRouter = require("./routers/seedRouter");
 const app = express();
 
 const rateLimiter = rateLimit({
@@ -18,8 +19,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(userRouter);
 
-app.use("/api/users",userRouter)
-
+// **** api Router
+app.use("/api/users", userRouter);
+app.use("/api/seed", seedRouter);
 
 app.get("/health", rateLimiter, (req, res) => {
   res.status(200).send({
@@ -27,7 +29,6 @@ app.get("/health", rateLimiter, (req, res) => {
     message: "ok",
   });
 });
-
 
 // client Error
 app.use((req, res, next) => {
