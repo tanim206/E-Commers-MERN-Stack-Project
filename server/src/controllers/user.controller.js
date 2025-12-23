@@ -1,11 +1,13 @@
 const createErrors = require("http-errors");
 const User = require("../models/userModels");
+const { successResponse } = require("./res.controller");
 
+//  GET all user  Find
 const getUser = async (req, res, next) => {
   try {
     const search = req.query.search || "";
     const page = Number(req.query.page) || 1;
-    const limit = Number(req.query.limit) || 1;
+    const limit = Number(req.query.limit) || 5;
 
     const searchRegExp = new RegExp(".*" + search + ".*", "i");
     const filter = {
@@ -23,15 +25,17 @@ const getUser = async (req, res, next) => {
     const count = await User.find(filter).countDocuments();
     if (!users) throw createErrors(404, "user not found");
 
-    res.status(200).send({
-      statusCode: "200",
-      message: "User profile create",
-      users,
-      pagination: {
-        totalPages: Math.ceil(count / limit),
-        currentPage: page,
-        priviousPage: page - 1 > 0 ? page - 1 : null,
-        nextPage: page + 1 < Math.ceil(count / limit) ? page + 1 : null,
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User were return successfully",
+      payload: {
+        users,
+        pagination: {
+          totalPages: Math.ceil(count / limit),
+          currentPage: page,
+          priviousPage: page - 1 > 0 ? page - 1 : null,
+          nextPage: page + 1 < Math.ceil(count / limit) ? page + 1 : null,
+        },
       },
     });
   } catch (error) {
@@ -39,4 +43,21 @@ const getUser = async (req, res, next) => {
   }
 };
 
-module.exports = getUser;
+// GET Single User Find
+const findSingleUser = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const options = { password: 0 };
+
+    const user = await User.findById(id, options);
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User were return successfully",
+      payload: { user },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getUser, findSingleUser };

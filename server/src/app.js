@@ -6,6 +6,7 @@ const createErrors = require("http-errors");
 const rateLimit = require("express-rate-limit");
 const userRouter = require("./routers/userRouter");
 const seedRouter = require("./routers/seedRouter");
+const { errorResponse } = require("./controllers/res.controller");
 const app = express();
 
 const rateLimiter = rateLimit({
@@ -17,7 +18,7 @@ const rateLimiter = rateLimit({
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(userRouter);
+
 
 // **** api Router
 app.use("/api/users", userRouter);
@@ -36,8 +37,8 @@ app.use((req, res, next) => {
 });
 // server Error ----- Sob error aikane asbe
 app.use((err, req, res, next) => {
-  return res.status(err.status || 500).json({
-    success: false,
+  return errorResponse(res, {
+    statusCode: err.status,
     message: err.message,
   });
 });
