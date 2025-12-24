@@ -1,10 +1,11 @@
 const createErrors = require("http-errors");
+const fs = require("fs");
 const User = require("../models/userModels");
 const { successResponse } = require("./res.controller");
-const mongoose = require("mongoose");
+const { findWithId } = require("../services/findItem");
 
 //  GET all user  Find
-const getUser = async (req, res, next) => {
+const getUsers = async (req, res, next) => {
   try {
     const search = req.query.search || "";
     const page = Number(req.query.page) || 1;
@@ -45,25 +46,49 @@ const getUser = async (req, res, next) => {
 };
 
 // GET Single User Find
-const findSingleUser = async (req, res, next) => {
+const findSingleUserById = async (req, res, next) => {
   try {
     const id = req.params.id;
     const options = { password: 0 };
-
-    const user = await User.findById(id, options);
-    if (!user) throw createErrors(404, "Don't match with this ID");
+    const user = await findWithId(User, id, options);
     return successResponse(res, {
       statusCode: 200,
       message: "User were return successfully",
       payload: { user },
     });
   } catch (error) {
-    if (error instanceof mongoose.Error) {
-      next(createErrors(400, "Invalid User Id"));
-      return;
-    }
     next(error);
   }
 };
 
-module.exports = { getUser, findSingleUser };
+// DELETE Single User
+const deleteUserById = async (req, res, next) => {
+  try {
+    const id = req.params.id;
+    const options = { password: 0 };
+    const user = await findWithId(User, id, options);
+
+    const userImagePath = user.image;
+    fs.access(userImagePath, (err) => {
+      if (err) {
+        console.error("user image does not exist");
+      } else {
+        fs.unlink(userImagePath, (err) => {
+          if (err) throw err;
+          console.log("user image was deleted");
+        });
+      }
+    });
+    await User.findByIdAndDelete({
+      _id: id,
+      isAdmin: false,
+    });
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User was delete successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = { getUsers, findSingleUserById, deleteUserById };

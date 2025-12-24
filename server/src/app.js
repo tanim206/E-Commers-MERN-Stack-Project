@@ -2,12 +2,12 @@ const express = require("express");
 const morgan = require("morgan");
 const bodyParser = require("body-parser");
 const createErrors = require("http-errors");
-// const xssClean = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const userRouter = require("./routers/userRouter");
 const seedRouter = require("./routers/seedRouter");
 const { errorResponse } = require("./controllers/res.controller");
 const app = express();
+// const xssClean = require("xss-clean");
 
 const rateLimiter = rateLimit({
   windowMs: 1 * 60 * 1000, // 1 minite
@@ -24,7 +24,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use("/api/users", userRouter);
 app.use("/api/seed", seedRouter);
 
-app.get("/health", rateLimiter, (req, res) => {
+app.get("/test", rateLimiter, (req, res) => {
   res.status(200).send({
     statusCode: "200",
     message: "ok",
