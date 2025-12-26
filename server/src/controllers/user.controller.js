@@ -1,8 +1,9 @@
 const createErrors = require("http-errors");
-const fs = require("fs");
+const fs = require("fs").promises;
 const User = require("../models/userModels");
 const { successResponse } = require("./res.controller");
 const { findWithId } = require("../services/findItem");
+const { deleteImage } = require("../helper/deleteImage");
 
 //  GET all user  Find
 const getUsers = async (req, res, next) => {
@@ -68,17 +69,9 @@ const deleteUserById = async (req, res, next) => {
     const options = { password: 0 };
     const user = await findWithId(User, id, options);
 
+    // Image controller
     const userImagePath = user.image;
-    fs.access(userImagePath, (err) => {
-      if (err) {
-        console.error("user image does not exist");
-      } else {
-        fs.unlink(userImagePath, (err) => {
-          if (err) throw err;
-          console.log("user image was deleted");
-        });
-      }
-    });
+    deleteImage(userImagePath);
     await User.findByIdAndDelete({
       _id: id,
       isAdmin: false,
@@ -91,4 +84,31 @@ const deleteUserById = async (req, res, next) => {
     next(error);
   }
 };
-module.exports = { getUsers, findSingleUserById, deleteUserById };
+// User Process-Register
+const processRegister = async (req, res, next) => {
+  try {
+    const { name, email, password, phone, address } = req.body;
+    const userExists = await User.exists({ email: email });
+    if (userExists) {
+      throw createErrors(
+        409,
+        "user with this email already existed. please sign in"
+      );
+    }
+
+    const newUser = { name, email, password, phone, address };
+    return successResponse(res, {
+      statusCode: 200,
+      message: "User was created successfully",
+      payload: { newUser },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+module.exports = {
+  getUsers,
+  findSingleUserById,
+  deleteUserById,
+  processRegister,
+};
