@@ -6,6 +6,17 @@ const mongodbURL =
 const defaultImagePath =
   process.env.DEFAULT_USER_IMAGE_PATH || "/public/image/users/default.png";
 
-const jwtActivationKey = process.env.JWT_ACTIVATION_KEY || tanim2HJGFH026r;
+const jwtActivationKey = process.env.JWT_ACTIVATION_KEY || "tanim2HJGFH026r";
+const smtpUserName = process.env.SMTP_USERNAME || "";
+const smtpPassword = process.env.SMTP_PASSWORD || "";
+const clientURL = process.env.CLIENT_URL || "";
 
-module.exports = { serverPort, mongodbURL, defaultImagePath, jwtActivationKey };
+module.exports = {
+  serverPort,
+  mongodbURL,
+  defaultImagePath,
+  jwtActivationKey,
+  smtpUserName,
+  smtpPassword,
+  clientURL,
+};
