@@ -4,6 +4,8 @@ const User = require("../models/userModels");
 const { successResponse } = require("./res.controller");
 const { findWithId } = require("../services/findItem");
 const { deleteImage } = require("../helper/deleteImage");
+const { jsonWebToken } = require("../helper/jsonWebToken");
+const { jwtActivationKey } = require("../secret");
 
 //  GET all user  Find
 const getUsers = async (req, res, next) => {
@@ -96,11 +98,17 @@ const processRegister = async (req, res, next) => {
       );
     }
 
-    const newUser = { name, email, password, phone, address };
+    // JWT CREATE TOKEN
+    const token = jsonWebToken(
+      { name, email, password, phone, address },
+      jwtActivationKey,
+      "10min"
+    );
+    // console.log(token);
     return successResponse(res, {
       statusCode: 200,
       message: "User was created successfully",
-      payload: { newUser },
+      payload: { token },
     });
   } catch (error) {
     next(error);

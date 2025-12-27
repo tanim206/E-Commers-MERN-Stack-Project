@@ -4,7 +4,8 @@ const mongodbURL =
   process.env.MONGODB_ATLAS_URL || "mongodb://localhost:27017/ecommarsDB";
 
 const defaultImagePath =
-  process.env.DEFAULT_USER_IMAGE_PATH ||
-  "server/public/image/users/default.png";
+  process.env.DEFAULT_USER_IMAGE_PATH || "/public/image/users/default.png";
 
-module.exports = { serverPort, mongodbURL, defaultImagePath };
+const jwtActivationKey = process.env.JWT_ACTIVATION_KEY || tanim2HJGFH026r;
+
+module.exports = { serverPort, mongodbURL, defaultImagePath, jwtActivationKey };
