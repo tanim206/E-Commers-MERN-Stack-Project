@@ -11,6 +11,7 @@ const smtpUserName = process.env.SMTP_USERNAME || "";
 const smtpPassword = process.env.SMTP_PASSWORD || "";
 const clientURL = process.env.CLIENT_URL || "";
 
+
 module.exports = {
   serverPort,
   mongodbURL,
@@ -19,4 +20,5 @@ module.exports = {
   smtpUserName,
   smtpPassword,
   clientURL,
+  
 };
