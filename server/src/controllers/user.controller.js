@@ -118,7 +118,7 @@ const processRegister = async (req, res, next) => {
 
     // send email with nodemailer
     try {
-      // await emailWithNodeMailer(emailData);
+      await emailWithNodeMailer(emailData);
     } catch (emailError) {
       next(createErrors(500, "Failed to verification Email"));
       return;
@@ -179,4 +179,3 @@ module.exports = {
   processRegister,
   activateUserAccount,
 };
- 
