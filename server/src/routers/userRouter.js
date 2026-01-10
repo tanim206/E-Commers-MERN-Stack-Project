@@ -5,6 +5,7 @@ const {
   deleteUserById,
   processRegister,
   activateUserAccount,
+  updateUserById,
 } = require("../controllers/user.controller");
 const upload = require("../middleWare/uploadFile");
 const { validateUserRegistration } = require("../validators/auth");
@@ -15,14 +16,15 @@ const userRouter = express.Router();
 // All common router path -- /api/users
 userRouter.post(
   "/process-register",
+  upload.single("image"),
   validateUserRegistration,
   runValidation,
-  upload.single("image"),
   processRegister
 );
 userRouter.post("/verify", activateUserAccount);
 userRouter.get("/", getUsers); // Show all Users
 userRouter.get("/:id", findSingleUserById); // Find Single User
 userRouter.delete("/:id", deleteUserById); // DELETE User
+userRouter.put("/:id", upload.single("image"),updateUserById); // update User
 
 module.exports = userRouter;

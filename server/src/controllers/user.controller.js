@@ -92,9 +92,14 @@ const deleteUserById = async (req, res, next) => {
 const processRegister = async (req, res, next) => {
   try {
     const { name, email, password, phone, address } = req.body;
-    if (req.file) {
+    const image = req.file;
+    if (!image) {
+      throw createErrors(400, "Image file is required");
     }
-    const imageBufferString = req.file.buffer.toString("base64");
+    if (image.size > 1024 * 1024 * 2) {
+      throw createErrors(400, "file to large . It must be less then 2 MB");
+    }
+    const imageBufferString = image.buffer.toString("base64");
     // user exists
     const userExists = await User.exists({ email: email });
     if (userExists) {
@@ -175,10 +180,55 @@ const activateUserAccount = async (req, res, next) => {
     next(error);
   }
 };
+// Update User
+const updateUserById = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const options = { password: 0 };
+    await findWithId(User, userId, options);
+    const updateOptions = { new: true, runValidators: true, context: "query" };
+    let updates = {};
+
+    for (let key in req.body) {
+      if (["name", "password", "phone", "address"].includes(key)) {
+        updates[key] = req.body[key];
+      } else if (["email"].includes(key)) {
+        throw createErrors(400, "Email can not be updated");
+      }
+    }
+
+    const image = req.file;
+    if (image) {
+      // image size maximum 2MB
+      if (image.size > 1024 * 1024 * 2) {
+        throw createErrors(400, "file to large . It must be less then 2 MB");
+      }
+      updates.image = image.buffer.toString("base64");
+    }
+
+    // delete updates.email;
+    const updateUser = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      updateOptions
+    ).select("-password");
+    if (updateUser) {
+      throw createErrors(404, "User with this ID does not exist");
+    }
+    return successResponse(res, {
+      statusCode: 200,
+      message: " User was updated successfully",
+      payload: updateUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   getUsers,
   findSingleUserById,
   deleteUserById,
   processRegister,
   activateUserAccount,
+  updateUserById,
 };
