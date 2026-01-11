@@ -1,5 +1,6 @@
 const express = require("express");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const createErrors = require("http-errors");
 const rateLimit = require("express-rate-limit");
@@ -16,6 +17,7 @@ const rateLimiter = rateLimit({
   message: "Too Many Request From This IP. Please Try Again",
 });
 // app.use(xssClean());
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
