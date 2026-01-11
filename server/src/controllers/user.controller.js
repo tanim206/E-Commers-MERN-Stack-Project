@@ -4,10 +4,10 @@ const fs = require("fs").promises;
 const User = require("../models/userModels");
 const { successResponse } = require("./res.controller");
 const { findWithId } = require("../services/findItem");
-const { deleteImage } = require("../helper/deleteImage");
 const { jsonWebToken } = require("../helper/jsonWebToken");
 const { jwtActivationKey, clientURL } = require("../secret");
 const emailWithNodeMailer = require("../helper/email");
+const deleteImage = require("../helper/deleteImageHelper");
 
 //  GET all user  Find
 const getUsers = async (req, res, next) => {
@@ -74,12 +74,16 @@ const deleteUserById = async (req, res, next) => {
     const user = await findWithId(User, id, options);
 
     // Image controller
-    const userImagePath = user.image;
-    deleteImage(userImagePath);
+    // const userImagePath = user.image;
+    // deleteImage(userImagePath);
+
     await User.findByIdAndDelete({
       _id: id,
       isAdmin: false,
     });
+    if (user && user.image) {
+      await deleteImage(user.image);
+    }
     return successResponse(res, {
       statusCode: 200,
       message: "User was delete successfully",
@@ -92,14 +96,12 @@ const deleteUserById = async (req, res, next) => {
 const processRegister = async (req, res, next) => {
   try {
     const { name, email, password, phone, address } = req.body;
-    const image = req.file;
-    if (!image) {
-      throw createErrors(400, "Image file is required");
-    }
-    if (image.size > 1024 * 1024 * 2) {
+    const image = req.file?.path;
+
+    if (image && image.size > 1024 * 1024 * 2) {
       throw createErrors(400, "file to large . It must be less then 2 MB");
     }
-    const imageBufferString = image.buffer.toString("base64");
+    // const imageBufferString = image.buffer.toString("base64");
     // user exists
     const userExists = await User.exists({ email: email });
     if (userExists) {
@@ -110,11 +112,17 @@ const processRegister = async (req, res, next) => {
     }
 
     // JWT CREATE TOKEN
-    const token = jsonWebToken(
-      { name, email, password, phone, address, image: imageBufferString },
-      jwtActivationKey,
-      "10min"
-    );
+    const tokenPayload = {
+      name,
+      email,
+      password,
+      phone,
+      address,
+    };
+    if (image) {
+      tokenPayload.image = image;
+    }
+    const token = jsonWebToken(tokenPayload, jwtActivationKey, "10min");
 
     // prepare email
     const emailData = {
@@ -125,25 +133,24 @@ const processRegister = async (req, res, next) => {
     };
 
     // send email with nodemailer
-    try {
-      await emailWithNodeMailer(emailData);
-    } catch (emailError) {
-      next(createErrors(500, "Failed to verification Email"));
-      return;
-    }
-
+    sendEmail(emailData);
+    // try {
+    //   await emailWithNodeMailer(emailData);
+    // } catch (emailError) {
+    //   next(createErrors(500, "Failed to verification Email"));
+    //   return;
+    // }
     // console.log(token);
     return successResponse(res, {
       statusCode: 200,
       message: `Please go to your ${email} for completing your registration process`,
-      payload: { token },
+      payload: token,
     });
   } catch (error) {
     next(error);
   }
 };
-
-// activate User Account   VERIFY
+// activate User Account  VERIFY
 const activateUserAccount = async (req, res, next) => {
   try {
     const token = req.body.token;
@@ -185,25 +192,26 @@ const updateUserById = async (req, res, next) => {
   try {
     const userId = req.params.id;
     const options = { password: 0 };
-    await findWithId(User, userId, options);
+    const user = await findWithId(User, userId, options);
+
     const updateOptions = { new: true, runValidators: true, context: "query" };
     let updates = {};
-
-    for (let key in req.body) {
-      if (["name", "password", "phone", "address"].includes(key)) {
+    const allowedFields = ["name", "password", "phone", "address"];
+    for (const key in req.body) {
+      if (allowedFields.includes(key)) {
         updates[key] = req.body[key];
       } else if (["email"].includes(key)) {
         throw createErrors(400, "Email can not be updated");
       }
     }
 
-    const image = req.file;
+    const image = req.file?.path;
     if (image) {
-      // image size maximum 2MB
-      if (image.size > 1024 * 1024 * 2) {
+      if (image.size > 1024 * 1024 * 4) {
         throw createErrors(400, "file to large . It must be less then 2 MB");
       }
-      updates.image = image.buffer.toString("base64");
+      updates.image = image;
+      user.image !== "default.png" && deleteImage(user.image);
     }
 
     // delete updates.email;
