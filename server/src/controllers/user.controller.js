@@ -72,11 +72,6 @@ const deleteUserById = async (req, res, next) => {
     const id = req.params.id;
     const options = { password: 0 };
     const user = await findWithId(User, id, options);
-
-    // Image controller
-    // const userImagePath = user.image;
-    // deleteImage(userImagePath);
-
     await User.findByIdAndDelete({
       _id: id,
       isAdmin: false,
@@ -232,6 +227,52 @@ const updateUserById = async (req, res, next) => {
     next(error);
   }
 };
+//  Banned User
+const handleBanUserById = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const user = await findWithId(User, userId);
+    const updates = { isBanned: true };
+    const updateOptions = { new: true, runValidators: true, context: "query" };
+    const updateUser = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      updateOptions
+    ).select("-password");
+    if (!updateUser) {
+      throw createErrors(400, "User was not Banned successfully");
+    }
+    return successResponse(res, {
+      statusCode: 200,
+      message: " User was Banned successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+// Unbanned User
+const handleUnbanUserById = async (req, res, next) => {
+  try {
+    const userId = req.params.id;
+    const user = await findWithId(User, userId);
+    const updates = { isBanned: false };
+    const updateOptions = { new: true, runValidators: true, context: "query" };
+    const updateUser = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      updateOptions
+    ).select("-password");
+    if (!updateUser) {
+      throw createErrors(400, "User was not Unbanned successfully");
+    }
+    return successResponse(res, {
+      statusCode: 200,
+      message: " User was Unbanned successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   getUsers,
   findSingleUserById,
@@ -239,4 +280,6 @@ module.exports = {
   processRegister,
   activateUserAccount,
   updateUserById,
+  handleBanUserById,
+  handleUnbanUserById,
 };
