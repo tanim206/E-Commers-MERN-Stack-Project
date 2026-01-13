@@ -8,6 +8,7 @@ const { jsonWebToken } = require("../helper/jsonWebToken");
 const { jwtActivationKey, clientURL } = require("../secret");
 const emailWithNodeMailer = require("../helper/email");
 const deleteImage = require("../helper/deleteImageHelper");
+const { handleUserAction } = require("../services/userService");
 
 //  GET all user  Find
 const getUsers = async (req, res, next) => {
@@ -93,10 +94,9 @@ const processRegister = async (req, res, next) => {
     const { name, email, password, phone, address } = req.body;
     const image = req.file?.path;
 
-    if (image && image.size > 1024 * 1024 * 2) {
+    if (image && image.size > 1024 * 1024 * 5) {
       throw createErrors(400, "file to large . It must be less then 2 MB");
     }
-    // const imageBufferString = image.buffer.toString("base64");
     // user exists
     const userExists = await User.exists({ email: email });
     if (userExists) {
@@ -128,14 +128,7 @@ const processRegister = async (req, res, next) => {
     };
 
     // send email with nodemailer
-    sendEmail(emailData);
-    // try {
-    //   await emailWithNodeMailer(emailData);
-    // } catch (emailError) {
-    //   next(createErrors(500, "Failed to verification Email"));
-    //   return;
-    // }
-    // console.log(token);
+    emailWithNodeMailer(emailData);
     return successResponse(res, {
       statusCode: 200,
       message: `Please go to your ${email} for completing your registration process`,
@@ -227,52 +220,21 @@ const updateUserById = async (req, res, next) => {
     next(error);
   }
 };
-//  Banned User
-const handleBanUserById = async (req, res, next) => {
+//  Banned/Unbanned User
+const handleManageUserStatusById = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const user = await findWithId(User, userId);
-    const updates = { isBanned: true };
-    const updateOptions = { new: true, runValidators: true, context: "query" };
-    const updateUser = await User.findByIdAndUpdate(
-      userId,
-      updates,
-      updateOptions
-    ).select("-password");
-    if (!updateUser) {
-      throw createErrors(400, "User was not Banned successfully");
-    }
+    const action = req.body.action;
+    const successMessage = await handleUserAction(action, userId);
     return successResponse(res, {
       statusCode: 200,
-      message: " User was Banned successfully",
+      message: successMessage,
     });
   } catch (error) {
     next(error);
   }
 };
-// Unbanned User
-const handleUnbanUserById = async (req, res, next) => {
-  try {
-    const userId = req.params.id;
-    const user = await findWithId(User, userId);
-    const updates = { isBanned: false };
-    const updateOptions = { new: true, runValidators: true, context: "query" };
-    const updateUser = await User.findByIdAndUpdate(
-      userId,
-      updates,
-      updateOptions
-    ).select("-password");
-    if (!updateUser) {
-      throw createErrors(400, "User was not Unbanned successfully");
-    }
-    return successResponse(res, {
-      statusCode: 200,
-      message: " User was Unbanned successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+
 module.exports = {
   getUsers,
   findSingleUserById,
@@ -280,6 +242,5 @@ module.exports = {
   processRegister,
   activateUserAccount,
   updateUserById,
-  handleBanUserById,
-  handleUnbanUserById,
+  handleManageUserStatusById,
 };
