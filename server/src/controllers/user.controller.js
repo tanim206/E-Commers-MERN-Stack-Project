@@ -8,7 +8,11 @@ const { jsonWebToken } = require("../helper/jsonWebToken");
 const { jwtActivationKey, clientURL } = require("../secret");
 const emailWithNodeMailer = require("../helper/email");
 const deleteImage = require("../helper/deleteImageHelper");
-const { handleUserAction, findUsers } = require("../services/userService");
+const {
+  handleUserAction,
+  findUsers,
+  findUserById,
+} = require("../services/userService");
 
 //  GET all user  Find
 const getUsers = async (req, res, next) => {
@@ -35,7 +39,7 @@ const findSingleUserById = async (req, res, next) => {
   try {
     const id = req.params.id;
     const options = { password: 0 };
-    const user = await findWithId(User, id, options);
+    const user = await findUserById(id, options);
     return successResponse(res, {
       statusCode: 200,
       message: "User were return successfully",
@@ -51,14 +55,7 @@ const deleteUserById = async (req, res, next) => {
   try {
     const id = req.params.id;
     const options = { password: 0 };
-    const user = await findWithId(User, id, options);
-    await User.findByIdAndDelete({
-      _id: id,
-      isAdmin: false,
-    });
-    if (user && user.image) {
-      await deleteImage(user.image);
-    }
+    await deleteUserById(id, options);
     return successResponse(res, {
       statusCode: 200,
       message: "User was delete successfully",

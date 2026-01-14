@@ -1,5 +1,6 @@
 const createErrors = require("http-errors");
 const User = require("../models/userModels");
+const deleteImage = require("../helper/deleteImageHelper");
 
 const findUsers = async (search, limit, page) => {
   try {
@@ -35,7 +36,31 @@ const findUsers = async (search, limit, page) => {
     throw error;
   }
 };
-
+const findUserById = async (id, options = {}) => {
+  try {
+    const user = await User.findById(id, options);
+    if (!user) {
+      throw createErrors(404, "User not found");
+    }
+    return user;
+  } catch (error) {
+    throw error;
+  }
+};
+const deleteUserById = async (id, options = {}) => {
+  try {
+    const user = await User.findByIdAndDelete({
+      _id: id,
+      isAdmin: false,
+    });
+    if (user && user.image) {
+      await deleteImage(user.image);
+    }
+    
+  } catch (error) {
+    throw error;
+  }
+};
 const handleUserAction = async (userId, action) => {
   try {
     let update;
@@ -75,5 +100,7 @@ const handleUserAction = async (userId, action) => {
 
 module.exports = {
   findUsers,
+  findUserById,
+  deleteUserById,
   handleUserAction,
 };
