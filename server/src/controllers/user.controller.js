@@ -12,6 +12,7 @@ const {
   handleUserAction,
   findUsers,
   findUserById,
+  updateUserById,
 } = require("../services/userService");
 
 //  GET all user  Find
@@ -152,45 +153,14 @@ const activateUserAccount = async (req, res, next) => {
   }
 };
 // Update User
-const updateUserById = async (req, res, next) => {
+const handleUpdateUserById = async (req, res, next) => {
   try {
     const userId = req.params.id;
-    const options = { password: 0 };
-    const user = await findWithId(User, userId, options);
-
-    const updateOptions = { new: true, runValidators: true, context: "query" };
-    let updates = {};
-    const allowedFields = ["name", "password", "phone", "address"];
-    for (const key in req.body) {
-      if (allowedFields.includes(key)) {
-        updates[key] = req.body[key];
-      } else if (["email"].includes(key)) {
-        throw createErrors(400, "Email can not be updated");
-      }
-    }
-
-    const image = req.file?.path;
-    if (image) {
-      if (image.size > 1024 * 1024 * 4) {
-        throw createErrors(400, "file to large . It must be less then 2 MB");
-      }
-      updates.image = image;
-      user.image !== "default.png" && deleteImage(user.image);
-    }
-
-    // delete updates.email;
-    const updateUser = await User.findByIdAndUpdate(
-      userId,
-      updates,
-      updateOptions
-    ).select("-password");
-    if (updateUser) {
-      throw createErrors(404, "User with this ID does not exist");
-    }
+    const updatedUser = await updateUserById(userId, req);
     return successResponse(res, {
       statusCode: 200,
       message: " User was updated successfully",
-      payload: updateUser,
+      payload: updatedUser,
     });
   } catch (error) {
     next(error);
@@ -217,6 +187,6 @@ module.exports = {
   deleteUserById,
   processRegister,
   activateUserAccount,
-  updateUserById,
+  handleUpdateUserById,
   handleManageUserStatusById,
 };

@@ -5,8 +5,8 @@ const {
   deleteUserById,
   processRegister,
   activateUserAccount,
-  updateUserById,
   handleManageUserStatusById,
+  handleUpdateUserById,
 } = require("../controllers/user.controller");
 // const upload = require("../middleWare/uploadFile");
 const { validateUserRegistration } = require("../validators/auth");
@@ -33,9 +33,13 @@ userRouter.put(
   "/:id",
   uploadUserImage.single("image"),
   isLoggedIn,
-  updateUserById
+  handleUpdateUserById
 ); // update User
-userRouter.put("/manage-user/:id", isLoggedIn, isAdmin, handleManageUserStatusById);
-
+userRouter.put(
+  "/manage-user/:id",
+  isLoggedIn,
+  isAdmin,
+  handleManageUserStatusById
+);
 
 module.exports = userRouter;

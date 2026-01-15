@@ -1,6 +1,7 @@
 const createErrors = require("http-errors");
 const User = require("../models/userModels");
 const deleteImage = require("../helper/deleteImageHelper");
+const mongoose = require("mongoose");
 
 const findUsers = async (search, limit, page) => {
   try {
@@ -44,6 +45,9 @@ const findUserById = async (id, options = {}) => {
     }
     return user;
   } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      throw createErrors(400, "Invalid Id");
+    }
     throw error;
   }
 };
@@ -56,8 +60,52 @@ const deleteUserById = async (id, options = {}) => {
     if (user && user.image) {
       await deleteImage(user.image);
     }
-    
   } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      throw createErrors(400, "Invalid Id");
+    }
+    throw error;
+  }
+};
+const updateUserById = async (userId, req) => {
+  try {
+    const options = { password: 0 };
+    const user = await findUserById(userId, options);
+    const updateOptions = { new: true, runValidators: true, context: "query" };
+    let updates = {};
+    const allowedFields = ["name", "password", "phone", "address"];
+    for (const key in req.body) {
+      if (allowedFields.includes(key)) {
+        updates[key] = req.body[key];
+      } else if (["email"].includes(key)) {
+        throw createErrors(400, "Email can not be updated");
+      }
+    }
+
+    const image = req.file?.path;
+    if (image) {
+      if (image.size > 1024 * 1024 * 4) {
+        throw createErrors(400, "file to large . It must be less then 2 MB");
+      }
+      updates.image = image;
+      user.image !== "default.png" && deleteImage(user.image);
+    }
+
+    // delete updates.email;
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      updateOptions
+    ).select("-password");
+
+    if (updatedUser) {
+      throw createErrors(404, "User with this ID does not exist");
+    }
+    return updatedUser;
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      throw createErrors(400, "Invalid Id");
+    }
     throw error;
   }
 };
@@ -94,6 +142,9 @@ const handleUserAction = async (userId, action) => {
 
     return successMessage;
   } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      throw createErrors(400, "Invalid Id");
+    }
     throw error;
   }
 };
@@ -102,5 +153,6 @@ module.exports = {
   findUsers,
   findUserById,
   deleteUserById,
+  updateUserById,
   handleUserAction,
 };
