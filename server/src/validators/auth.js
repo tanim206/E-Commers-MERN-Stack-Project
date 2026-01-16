@@ -60,9 +60,45 @@ const validateUserLogin = [
       "Password should contain at least one uppercase letter, one lowercase letter, one number, and one special character."
     ),
 ];
+const validateUserPasswordUpdate = [
+  body("oldPassword")
+    .trim()
+    .notEmpty()
+    .withMessage("old Password is required. Enter your old Password")
+    .isLength({ min: 6 })
+    .withMessage(" old password should be at least 6 charecters long")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/
+    )
+    .withMessage(
+      "Password should contain at least one uppercase letter, one lowercase letter, one number, and one special character."
+    ),
+  body("newPassword")
+    .trim()
+    .notEmpty()
+    .withMessage("New Password is required. Enter your new Password")
+    .isLength({ min: 6 })
+    .withMessage("New password should be at least 6 charecters long")
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/
+    )
+    .withMessage(
+      "Password should contain at least one uppercase letter, one lowercase letter, one number, and one special character."
+    ),
+  body("confirmedPassword").custom((value, { req }) => {
+    if (value !== req.body.newPassword) {
+      throw new Error("password did not match");
+    }
+    return true;
+  }),
+];
 
 // Registration Validetors
 
 // Sign in Validetors
 
-module.exports = { validateUserRegistration, validateUserLogin };
+module.exports = {
+  validateUserRegistration,
+  validateUserLogin,
+  validateUserPasswordUpdate,
+};

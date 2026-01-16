@@ -1,5 +1,6 @@
 const createErrors = require("http-errors");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const fs = require("fs").promises;
 const User = require("../models/userModels");
 const { successResponse } = require("./res.controller");
@@ -50,7 +51,6 @@ const findSingleUserById = async (req, res, next) => {
     next(error);
   }
 };
-
 // DELETE Single User
 const deleteUserById = async (req, res, next) => {
   try {
@@ -180,7 +180,39 @@ const handleManageUserStatusById = async (req, res, next) => {
     next(error);
   }
 };
+// update password
+const handleUpdatePassword = async (req, res, next) => {
+  try {
+    const {  oldPassword, newPassword } = req.body;
+    const userId = req.params.id;
+    const user = await findWithId(User.userId);
 
+    const ispasswordMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!ispasswordMatch) {
+      throw createErrors(401, "oldPassword is not correct");
+    }
+    const filter = { userId };
+    const updates = { $set: { password: newPassword } };
+    const updateOptions = { new: true };
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      updateOptions
+    ).select("-password");
+
+    if(!updatedUser){
+      throw createErrors(400,"User was not updated successfully")
+    }
+    return successResponse(res, {
+      statusCode: 200,
+      message: "user was updated successfully",
+      payload: updatedUser,
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   getUsers,
   findSingleUserById,
@@ -189,4 +221,5 @@ module.exports = {
   activateUserAccount,
   handleUpdateUserById,
   handleManageUserStatusById,
+  handleUpdatePassword,
 };

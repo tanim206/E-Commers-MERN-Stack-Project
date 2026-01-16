@@ -7,9 +7,13 @@ const {
   activateUserAccount,
   handleManageUserStatusById,
   handleUpdateUserById,
+  handleUpdatePassword,
 } = require("../controllers/user.controller");
 // const upload = require("../middleWare/uploadFile");
-const { validateUserRegistration } = require("../validators/auth");
+const {
+  validateUserRegistration,
+  validateUserPasswordUpdate,
+} = require("../validators/auth");
 const runValidation = require("../validators");
 const uploadUserImage = require("../middleWare/uploadFile");
 const { isLoggedIn, isLoggedOut, isAdmin } = require("../middleWare/auth");
@@ -40,6 +44,13 @@ userRouter.put(
   isLoggedIn,
   isAdmin,
   handleManageUserStatusById
+);
+userRouter.put(
+  "/update-password/:id",
+  validateUserPasswordUpdate,
+  runValidation,
+  isLoggedIn,
+  handleUpdatePassword
 );
 
 module.exports = userRouter;
