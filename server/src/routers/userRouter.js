@@ -8,11 +8,13 @@ const {
   handleManageUserStatusById,
   handleUpdateUserById,
   handleUpdatePassword,
+  handleForgetPassword,
 } = require("../controllers/user.controller");
 // const upload = require("../middleWare/uploadFile");
 const {
   validateUserRegistration,
   validateUserPasswordUpdate,
+  validateUserForgetPassword,
 } = require("../validators/auth");
 const runValidation = require("../validators");
 const uploadUserImage = require("../middleWare/uploadFile");
@@ -51,6 +53,12 @@ userRouter.put(
   runValidation,
   isLoggedIn,
   handleUpdatePassword
+);
+userRouter.post(
+  "/forget-password",
+  validateUserForgetPassword,
+  runValidation,
+  handleForgetPassword
 );
 
 module.exports = userRouter;

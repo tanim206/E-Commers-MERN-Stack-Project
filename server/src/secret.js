@@ -8,6 +8,8 @@ const defaultImagePath =
 
 const jwtActivationKey = process.env.JWT_ACTIVATION_KEY || "tanim2HJGFH026r";
 const jwtAccessKey = process.env.JWT_ACCESS_KEY || "tanim2HJGFH026r";
+const jwtResetPasswordKey =
+  process.env.JWT_RESET_PASSWORD_KEY || "tanim2HJGFH026r";
 const smtpUserName = process.env.SMTP_USERNAME || "";
 const smtpPassword = process.env.SMTP_PASSWORD || "";
 const clientURL = process.env.CLIENT_URL || "";
@@ -21,4 +23,5 @@ module.exports = {
   smtpPassword,
   clientURL,
   jwtAccessKey,
+  jwtResetPasswordKey,
 };

@@ -92,6 +92,14 @@ const validateUserPasswordUpdate = [
     return true;
   }),
 ];
+const validateUserForgetPassword = [
+  body("email")
+    .trim()
+    .notEmpty()
+    .withMessage("Email is required. Enter your email")
+    .isEmail()
+    .withMessage("Invalid email address"),
+];
 
 // Registration Validetors
 
@@ -101,4 +109,5 @@ module.exports = {
   validateUserRegistration,
   validateUserLogin,
   validateUserPasswordUpdate,
+  validateUserForgetPassword,
 };

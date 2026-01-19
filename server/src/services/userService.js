@@ -2,6 +2,7 @@ const createErrors = require("http-errors");
 const User = require("../models/userModels");
 const deleteImage = require("../helper/deleteImageHelper");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const findUsers = async (search, limit, page) => {
   try {
@@ -109,6 +110,44 @@ const updateUserById = async (userId, req) => {
     throw error;
   }
 };
+const updateUserPasswordById = async (
+  userId,
+  email,
+  oldPassword,
+  newPassword,
+  confirmPassword
+) => {
+  try {
+    const user = await User.findOne({ email: email });
+    if (!user) {
+      throw createErrors(404, "User is not found with this email");
+    }
+    if (newPassword !== confirmPassword) {
+      throw createErrors(400, "New Password & Confirm Password Didn't Match");
+    }
+
+    const ispasswordMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!ispasswordMatch) {
+      throw createErrors(401, "oldPassword is not correct");
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      updates,
+      updateOptions
+    ).select("-password");
+
+    if (!updatedUser) {
+      throw createErrors(400, "User was not updated successfully");
+    }
+    return updatedUser;
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      throw createErrors(400, "Invalid Id");
+    }
+    throw error;
+  }
+};
 const handleUserAction = async (userId, action) => {
   try {
     let update;
@@ -154,5 +193,6 @@ module.exports = {
   findUserById,
   deleteUserById,
   updateUserById,
+  updateUserPasswordById,
   handleUserAction,
 };
