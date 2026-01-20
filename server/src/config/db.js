@@ -13,4 +13,4 @@ const connectDatabase = async (options = {}) => {
   }
 };
 
-module.exports  = connectDatabase;
+module.exports = connectDatabase;

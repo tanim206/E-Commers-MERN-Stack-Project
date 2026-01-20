@@ -1,27 +1,28 @@
 const express = require("express");
 const {
-  getUsers,
-  findSingleUserById,
-  deleteUserById,
-  processRegister,
-  activateUserAccount,
+  handleGetUsers,
+  handleFindSingleUserById,
+  handleDeleteUserById,
+  handleProcessRegister,
+  handleActivateUserAccount,
   handleManageUserStatusById,
   handleUpdateUserById,
   handleUpdatePassword,
   handleForgetPassword,
+  handleResetPassword,
 } = require("../controllers/user.controller");
 // const upload = require("../middleWare/uploadFile");
 const {
   validateUserRegistration,
   validateUserPasswordUpdate,
   validateUserForgetPassword,
+  validateUserResetPassword,
 } = require("../validators/auth");
 const runValidation = require("../validators");
 const uploadUserImage = require("../middleWare/uploadFile");
 const { isLoggedIn, isLoggedOut, isAdmin } = require("../middleWare/auth");
 
 const userRouter = express.Router();
-
 // All common router path -- /api/users
 userRouter.post(
   "/process-register",
@@ -29,36 +30,48 @@ userRouter.post(
   isLoggedOut,
   validateUserRegistration,
   runValidation,
-  processRegister
+  handleProcessRegister,
 );
-userRouter.post("/activate", isLoggedOut, activateUserAccount);
-userRouter.get("/", isLoggedIn, isAdmin, getUsers); // Show all Users
-userRouter.get("/:id", isLoggedIn, findSingleUserById); // Find Single User
-userRouter.delete("/:id", isLoggedIn, deleteUserById); // DELETE User
+userRouter.post("/activate", isLoggedOut, handleActivateUserAccount); // verify Router
+userRouter.get("/", isLoggedIn, isAdmin, handleGetUsers); // Show all Users
+userRouter.get("/:id", isLoggedIn, handleFindSingleUserById); // Find Single User
+userRouter.delete("/:id", isLoggedIn, handleDeleteUserById); // DELETE User
+userRouter.put(
+  "/reset-password",
+  validateUserResetPassword,
+  runValidation,
+  handleResetPassword,
+);
 userRouter.put(
   "/:id",
   uploadUserImage.single("image"),
   isLoggedIn,
-  handleUpdateUserById
+  handleUpdateUserById,
 ); // update User
 userRouter.put(
   "/manage-user/:id",
   isLoggedIn,
   isAdmin,
-  handleManageUserStatusById
+  handleManageUserStatusById,
 );
 userRouter.put(
   "/update-password/:id",
   validateUserPasswordUpdate,
   runValidation,
   isLoggedIn,
-  handleUpdatePassword
+  handleUpdatePassword,
 );
 userRouter.post(
   "/forget-password",
   validateUserForgetPassword,
   runValidation,
-  handleForgetPassword
+  handleForgetPassword,
 );
+// userRouter.put(
+//   "/reset-password",
+//   validateUserResetPassword,
+//   runValidation,
+//   handleResetPassword,
+// );
 
 module.exports = userRouter;

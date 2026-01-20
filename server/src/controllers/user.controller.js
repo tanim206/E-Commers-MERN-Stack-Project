@@ -6,11 +6,7 @@ const User = require("../models/userModels");
 const { successResponse } = require("./res.controller");
 const { findWithId } = require("../services/findItem");
 const { jsonWebToken } = require("../helper/jsonWebToken");
-const {
-  jwtActivationKey,
-  clientURL,
-  jwtResetPasswordKey,
-} = require("../secret");
+const { jwtActivationKey, clientURL } = require("../secret");
 const emailWithNodeMailer = require("../helper/email");
 const deleteImage = require("../helper/deleteImageHelper");
 const {
@@ -19,10 +15,12 @@ const {
   findUserById,
   updateUserById,
   updateUserPasswordById,
+  forgetPasswordByEmail,
+  resetPassword,
 } = require("../services/userService");
 
 //  GET all user  Find
-const getUsers = async (req, res, next) => {
+const handleGetUsers = async (req, res, next) => {
   try {
     const search = req.query.search || "";
     const page = Number(req.query.page) || 1;
@@ -40,9 +38,8 @@ const getUsers = async (req, res, next) => {
     next(error);
   }
 };
-
 // GET Single User Find
-const findSingleUserById = async (req, res, next) => {
+const handleFindSingleUserById = async (req, res, next) => {
   try {
     const id = req.params.id;
     const options = { password: 0 };
@@ -57,7 +54,7 @@ const findSingleUserById = async (req, res, next) => {
   }
 };
 // DELETE Single User
-const deleteUserById = async (req, res, next) => {
+const handleDeleteUserById = async (req, res, next) => {
   try {
     const id = req.params.id;
     const options = { password: 0 };
@@ -71,7 +68,7 @@ const deleteUserById = async (req, res, next) => {
   }
 };
 // User Process-Register
-const processRegister = async (req, res, next) => {
+const handleProcessRegister = async (req, res, next) => {
   try {
     const { name, email, password, phone, address } = req.body;
     const image = req.file?.path;
@@ -84,7 +81,7 @@ const processRegister = async (req, res, next) => {
     if (userExists) {
       throw createErrors(
         409,
-        "user with this email already existed. please sign in"
+        "user with this email already existed. please sign in",
       );
     }
 
@@ -114,14 +111,13 @@ const processRegister = async (req, res, next) => {
     return successResponse(res, {
       statusCode: 200,
       message: `Please go to your ${email} for completing your registration process`,
-      payload: token,
     });
   } catch (error) {
     next(error);
   }
 };
 // activate User Account  VERIFY
-const activateUserAccount = async (req, res, next) => {
+const handleActivateUserAccount = async (req, res, next) => {
   try {
     const token = req.body.token;
     if (!token) throw createErrors(404, "token not found");
@@ -134,7 +130,7 @@ const activateUserAccount = async (req, res, next) => {
       if (userExists) {
         throw createErrors(
           409,
-          "user with this email already existed. please sign in"
+          "user with this email already existed. please sign in",
         );
       }
 
@@ -195,7 +191,7 @@ const handleUpdatePassword = async (req, res, next) => {
       email,
       oldPassword,
       newPassword,
-      confirmPassword
+      confirmPassword,
     );
     return successResponse(res, {
       statusCode: 200,
@@ -210,50 +206,38 @@ const handleUpdatePassword = async (req, res, next) => {
 const handleForgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    const userData = await User.findOne({ enail: email });
-    if (!userData) {
-      throw createErrors(
-        404,
-        "Email is incorrect or you have not verify your email address. Please Register your first"
-      );
-    }
-    // create jwt
-    const token = jsonWebToken({ email }, jwtResetPasswordKey, "10min");
-
-    // prepare email
-    const emailData = {
-      email,
-      subject: "Reset Password Email",
-      html: `<h1>Hello ${userData.name}! </h1>
-      <p>Please click here to <a href="${clientURL}/api/users/reset-password/${token}" target="_blank">reset your password</a> </p>`,
-    };
-
-    // send email with nodemailer
-    try {
-      await emailWithNodeMailer(emailData);
-    } catch (emailError) {
-      next(createErrors(500, "Failed to send reset password email"));
-      return;
-    }
-
+    const token = await forgetPasswordByEmail(email);
     return successResponse(res, {
       statusCode: 200,
-      message: `Please go to your ${email} for reseting the password`,
+      message: `Please go to your ${email} for reset the password`,
       payload: token,
     });
   } catch (error) {
     next(error);
   }
 };
-
+// reset password
+const handleResetPassword = async (req, res, next) => {
+  try {
+    const { token, password } = req.body;
+    await resetPassword(token, password);
+    return successResponse(res, {
+      statusCode: 200,
+      message: " Password Reset successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
-  getUsers,
-  findSingleUserById,
-  deleteUserById,
-  processRegister,
-  activateUserAccount,
+  handleGetUsers,
+  handleFindSingleUserById,
+  handleDeleteUserById,
+  handleProcessRegister,
+  handleActivateUserAccount,
   handleUpdateUserById,
   handleManageUserStatusById,
   handleUpdatePassword,
   handleForgetPassword,
+  handleResetPassword,
 };

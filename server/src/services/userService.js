@@ -3,6 +3,10 @@ const User = require("../models/userModels");
 const deleteImage = require("../helper/deleteImageHelper");
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { jsonWebToken } = require("../helper/jsonWebToken");
+const emailWithNodeMailer = require("../helper/email");
+const { jwtResetPasswordKey, clientURL } = require("../secret");
 
 const findUsers = async (search, limit, page) => {
   try {
@@ -22,7 +26,7 @@ const findUsers = async (search, limit, page) => {
       .limit(limit)
       .skip((page - 1) * limit);
     const count = await User.find(filter).countDocuments();
-    if (!users) {
+    if (!users || users.length === 0) {
       throw createErrors(404, "User not found");
     }
     return {
@@ -78,7 +82,7 @@ const updateUserById = async (userId, req) => {
     for (const key in req.body) {
       if (allowedFields.includes(key)) {
         updates[key] = req.body[key];
-      } else if (["email"].includes(key)) {
+      } else if (key === "email") {
         throw createErrors(400, "Email can not be updated");
       }
     }
@@ -88,15 +92,15 @@ const updateUserById = async (userId, req) => {
       if (image.size > 1024 * 1024 * 4) {
         throw createErrors(400, "file to large . It must be less then 2 MB");
       }
-      updates.image = image;
-      user.image !== "default.png" && deleteImage(user.image);
+      // updates.image = image;
+      user.image = image.buffer.toString("base64");
     }
 
     // delete updates.email;
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       updates,
-      updateOptions
+      updateOptions,
     ).select("-password");
 
     if (updatedUser) {
@@ -115,7 +119,7 @@ const updateUserPasswordById = async (
   email,
   oldPassword,
   newPassword,
-  confirmPassword
+  confirmPassword,
 ) => {
   try {
     const user = await User.findOne({ email: email });
@@ -134,7 +138,7 @@ const updateUserPasswordById = async (
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       updates,
-      updateOptions
+      updateOptions,
     ).select("-password");
 
     if (!updatedUser) {
@@ -145,6 +149,53 @@ const updateUserPasswordById = async (
     if (error instanceof mongoose.Error.CastError) {
       throw createErrors(400, "Invalid Id");
     }
+    throw error;
+  }
+};
+const forgetPasswordByEmail = async (email) => {
+  try {
+    const userData = await User.findOne({ enail: email });
+    if (!userData) {
+      throw createErrors(
+        404,
+        "Email is incorrect or you have not verify your email address. Please Register your first",
+      );
+    }
+    // create jwt
+    const token = jsonWebToken({ email }, jwtResetPasswordKey, "10min");
+    // prepare email
+    const emailData = {
+      email,
+      subject: "Reset Password Email",
+      html: `<h1>Hello ${userData.name}! </h1>
+      <p>Please click here to <a href="${clientURL}/api/users/reset-password/${token}" target="_blank">reset your password</a> </p>`,
+    };
+    // send email with nodemailer
+    emailWithNodeMailer(emailData);
+    return token;
+  } catch (error) {
+    throw error;
+  }
+};
+const resetPassword = async (token, password) => {
+  try {
+    const decoded = jwt.verify(token, jwtResetPasswordKey);
+    if (!decoded) {
+      throw createErrors(400, "Invalid or Expired Token");
+    }
+    const filter = { email: decoded.email };
+    const update = { password: password };
+    const options = { new: true };
+
+    const updatedUser = await User.findOneAndUpdate(
+      filter,
+      update,
+      options,
+    ).select("-password");
+    if (!updatedUser) {
+      throw createErrors(400, "Passoword Reset Failed");
+    }
+  } catch (error) {
     throw error;
   }
 };
@@ -172,7 +223,7 @@ const handleUserAction = async (userId, action) => {
     const updateUser = await User.findByIdAndUpdate(
       userId,
       update,
-      updateOptions
+      updateOptions,
     ).select("-password");
 
     if (!updateUser) {
@@ -194,5 +245,7 @@ module.exports = {
   deleteUserById,
   updateUserById,
   updateUserPasswordById,
+  forgetPasswordByEmail,
+  resetPassword,
   handleUserAction,
 };

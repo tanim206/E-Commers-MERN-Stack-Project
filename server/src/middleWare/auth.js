@@ -41,7 +41,7 @@ const isAdmin = async (req, res, next) => {
     if (!req.user.isAdmin) {
       throw createErrors(
         403,
-        "Forbidden. You must be an Admin to access this project"
+        "Forbidden. You must be an Admin to access this project",
       );
     }
     next();
