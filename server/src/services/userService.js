@@ -5,8 +5,8 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { jsonWebToken } = require("../helper/jsonWebToken");
-const emailWithNodeMailer = require("../helper/email");
 const { jwtResetPasswordKey, clientURL } = require("../secret");
+const sendEmail = require("../helper/sendEmail");
 
 const findUsers = async (search, limit, page) => {
   try {
@@ -171,7 +171,7 @@ const forgetPasswordByEmail = async (email) => {
       <p>Please click here to <a href="${clientURL}/api/users/reset-password/${token}" target="_blank">reset your password</a> </p>`,
     };
     // send email with nodemailer
-    emailWithNodeMailer(emailData);
+    sendEmail(emailData);
     return token;
   } catch (error) {
     throw error;

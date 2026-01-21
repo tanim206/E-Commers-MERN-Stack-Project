@@ -5,6 +5,10 @@ const User = require("../models/userModels");
 const { successResponse } = require("./res.controller");
 const { jsonWebToken } = require("../helper/jsonWebToken");
 const { jwtAccessKey, jwtRefreshKey } = require("../secret");
+const {
+  setAccessTokenCookie,
+  setRefreshTokenCookie,
+} = require("../helper/cookie");
 
 const handleLogin = async (req, res, next) => {
   try {
@@ -28,21 +32,12 @@ const handleLogin = async (req, res, next) => {
 
     // token . cookie
     // create JWT
+    // accessToken
     const accessToken = jsonWebToken({ user }, jwtAccessKey, "5min");
-    res.cookie("accessToken", accessToken, {
-      maxAge: 5 * 60 * 1000, // 15 min
-      httpOnly: true,
-      // secure: true,
-      sameSite: "none",
-    });
+    setAccessTokenCookie(res, accessToken);
     // refreshToken
     const refreshToken = jsonWebToken({ user }, jwtRefreshKey, "7days");
-    res.cookie("refreshToken", refreshToken, {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      httpOnly: true,
-      // secure: true,
-      sameSite: "none",
-    });
+    setRefreshTokenCookie(res, refreshToken);
     const userWithoutPassword = user.toObject();
     delete userWithoutPassword.password;
     /// succes responce
@@ -76,12 +71,7 @@ const handleRefreshToken = async (req, res, next) => {
       throw createErrors(401, "Invalid Refresh Token.Please Login Again");
     }
     const accessToken = jsonWebToken(decodedToken.user, jwtAccessKey, "5min");
-    res.cookie("accessToken", accessToken, {
-      maxAge: 5 * 60 * 1000, // 5 min
-      httpOnly: true,
-      // secure: true,
-      sameSite: "none",
-    });
+    setAccessTokenCookie(res, accessToken);
     return successResponse(res, {
       statusCode: 200,
       message: "New Access Token Is Genareted",

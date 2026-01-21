@@ -1,4 +1,5 @@
 const nodemailer = require("nodemailer");
+const logger = require("../controllers/logger.controller");
 const { smtpUserName, smtpPassword } = require("../secret");
 
 const transporter = nodemailer.createTransport({
@@ -20,9 +21,9 @@ const emailWithNodeMailer = async (emailData) => {
       html: emailData.html,
     };
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Message sent: %s`, info.response);
+    logger.log("info", `Message sent: %s`, info.response);
   } catch (error) {
-    console.error(`email occured while sending email:`, error);
+    logger.log("error", `email occured while sending email:`, error);
     throw error;
   }
 };

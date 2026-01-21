@@ -4,10 +4,8 @@ const bcrypt = require("bcryptjs");
 const fs = require("fs").promises;
 const User = require("../models/userModels");
 const { successResponse } = require("./res.controller");
-const { findWithId } = require("../services/findItem");
 const { jsonWebToken } = require("../helper/jsonWebToken");
 const { jwtActivationKey, clientURL } = require("../secret");
-const emailWithNodeMailer = require("../helper/email");
 const deleteImage = require("../helper/deleteImageHelper");
 const {
   handleUserAction,
@@ -18,6 +16,8 @@ const {
   forgetPasswordByEmail,
   resetPassword,
 } = require("../services/userService");
+const checkUserExists = require("../helper/checkUserExists");
+const sendEmail = require("../helper/sendEmail");
 
 //  GET all user  Find
 const handleGetUsers = async (req, res, next) => {
@@ -77,7 +77,7 @@ const handleProcessRegister = async (req, res, next) => {
       throw createErrors(400, "file to large . It must be less then 2 MB");
     }
     // user exists
-    const userExists = await User.exists({ email: email });
+    const userExists = await checkUserExists(email);
     if (userExists) {
       throw createErrors(
         409,
@@ -107,7 +107,7 @@ const handleProcessRegister = async (req, res, next) => {
     };
 
     // send email with nodemailer
-    emailWithNodeMailer(emailData);
+    sendEmail(emailData);
     return successResponse(res, {
       statusCode: 200,
       message: `Please go to your ${email} for completing your registration process`,

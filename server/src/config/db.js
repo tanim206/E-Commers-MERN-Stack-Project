@@ -1,15 +1,16 @@
 const mongoose = require("mongoose");
 const { mongodbURL } = require("../secret");
+const logger = require("../controllers/logger.controller");
 
 const connectDatabase = async (options = {}) => {
   try {
     await mongoose.connect(mongodbURL, options);
-    console.log("✅ Database Connect Successfull");
+    logger.log("info", "✅ Database Connect Successfull");
     mongoose.connection.on("error", () => {
-      console.error("Database Connection Error", error);
+      logger.log("error", "❌ Database Connection Error", error);
     });
   } catch (error) {
-    console.error("Database Connect Failed", error.toString());
+    logger.log("error", "❌ Database Connect Failed", error.toString());
   }
 };
 
