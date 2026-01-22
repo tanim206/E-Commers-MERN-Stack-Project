@@ -31,9 +31,8 @@ const userSchema = new Schema(
     },
     image: {
       type: Buffer,
-      default: defaultImagePath,
-      // contentType: String,
-      // require: [true, "User image  is required"],
+      contentType: String,
+      require: [true, "User image  is required"],
     },
     address: {
       type: String,
