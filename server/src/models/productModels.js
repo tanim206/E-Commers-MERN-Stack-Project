@@ -8,7 +8,7 @@ const productSchema = new Schema(
       trim: true,
       unique: true,
       minlength: [3, "Product name must be at least 3 characters long"],
-      maxlength: [105, "Product name must not exceed 105 characters"],
+      maxlength: [150, "Product name must not exceed 105 characters"],
     },
 
     slug: {

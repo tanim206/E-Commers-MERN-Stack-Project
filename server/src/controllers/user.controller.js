@@ -76,6 +76,7 @@ const handleProcessRegister = async (req, res, next) => {
     if (image && image.size > 1024 * 1024 * 5) {
       throw createErrors(400, "file to large . It must be less then 2 MB");
     }
+    // const imageBufferString = image.toString();
     // user exists
     const userExists = await checkUserExists(email);
     if (userExists) {
@@ -92,6 +93,7 @@ const handleProcessRegister = async (req, res, next) => {
       password,
       phone,
       address,
+      // image: imageBufferString,
     };
     if (image) {
       tokenPayload.image = image;
@@ -111,6 +113,7 @@ const handleProcessRegister = async (req, res, next) => {
     return successResponse(res, {
       statusCode: 200,
       message: `Please go to your ${email} for completing your registration process`,
+      payload: token,
     });
   } catch (error) {
     next(error);
