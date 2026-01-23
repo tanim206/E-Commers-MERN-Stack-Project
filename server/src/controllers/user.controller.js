@@ -72,11 +72,9 @@ const handleProcessRegister = async (req, res, next) => {
   try {
     const { name, email, password, phone, address } = req.body;
     const image = req.file?.path;
-
     if (image && image.size > 1024 * 1024 * 5) {
       throw createErrors(400, "file to large . It must be less then 2 MB");
     }
-    // const imageBufferString = image.toString();
     // user exists
     const userExists = await checkUserExists(email);
     if (userExists) {
@@ -93,7 +91,6 @@ const handleProcessRegister = async (req, res, next) => {
       password,
       phone,
       address,
-      // image: imageBufferString,
     };
     if (image) {
       tokenPayload.image = image;

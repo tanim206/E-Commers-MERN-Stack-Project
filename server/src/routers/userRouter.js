@@ -18,13 +18,14 @@ const {
   validateUserResetPassword,
 } = require("../validators/auth");
 const runValidation = require("../validators");
-const upload = require("../middleWare/uploadFile");
+// const {upload} = require("../middleWare/uploadFile");
 const { isLoggedIn, isLoggedOut, isAdmin } = require("../middleWare/auth");
+const { uploadUserImage } = require("../middleWare/uploadFile");
 const userRouter = express.Router();
 // All common router path -- /api/users
 userRouter.post(
   "/process-register",
-  upload.single("image"),
+  uploadUserImage.single("image"),
   isLoggedOut,
   validateUserRegistration,
   runValidation,
@@ -42,7 +43,7 @@ userRouter.put(
 );
 userRouter.put(
   "/:id",
-  upload.single("image"),
+  uploadUserImage.single("image"),
   isLoggedIn,
   handleUpdateUserById,
 ); // update User
