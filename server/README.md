@@ -1,1 +1,1 @@
-git add . && git commit -m "feat: get all products with pagination" && git push
+git add . && git commit -m "feat: get single products " && git push

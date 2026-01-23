@@ -2,6 +2,7 @@ const express = require("express");
 const {
   handleCreateProduct,
   handleGetProducts,
+  handleGetProduct,
 } = require("../controllers/product.controller");
 const { validateProduct } = require("../validators/productValidator");
 const runValidation = require("../validators");
@@ -19,7 +20,9 @@ productRouter.post(
   isAdmin,
   handleCreateProduct,
 );
-// Get/Read Product
+// Get/Read Products
 productRouter.get("/", handleGetProducts);
+// Get/Read Single Product
+productRouter.get("/:slug", handleGetProduct);
 
 module.exports = productRouter;

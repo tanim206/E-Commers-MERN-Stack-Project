@@ -2,7 +2,11 @@ const createErrors = require("http-errors");
 const { successResponse } = require("./res.controller");
 const slugify = require("slugify");
 const Product = require("../models/productModels");
-const { createProduct } = require("../services/productService");
+const {
+  createProduct,
+  getProducts,
+  getProduct,
+} = require("../services/productService");
 
 const handleCreateProduct = async (req, res, next) => {
   try {
@@ -22,26 +26,33 @@ const handleGetProducts = async (req, res, next) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 4;
-    const products = await Product.find({})
-      .populate("category")
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-    if (!products) throw createErrors(404, "No Products Found");
-    const countProducts = await Product.find({}).countDocuments();
+    const productData = await getProducts(page, limit);
     return successResponse(res, {
       statusCode: 200,
-      message: "Products Returned successfully",
+      message: "All Product Returned successfully",
       payload: {
-        products: products,
+        products: productData.products,
         pagination: {
-          current_Page: page,
-          previous_Page: page - 1,
-          next_Page: page + 1,
-          total_page: Math.ceil(countProducts / limit),
-          total_Number_Off_Product: countProducts,
+          totalPages: productData.totalPages,
+          previousPage: productData.currentPage - 1,
+          nextPage: productData.currentPage + 1,
+          currentPage: productData.currentPage,
+          total_Number_Off_Product: productData.countProducts,
         },
       },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const handleGetProduct = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    const product = await getProduct(slug);
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Single Product Returned successfully",
+      payload: { product },
     });
   } catch (error) {
     next(error);
@@ -51,4 +62,5 @@ const handleGetProducts = async (req, res, next) => {
 module.exports = {
   handleCreateProduct,
   handleGetProducts,
+  handleGetProduct,
 };
