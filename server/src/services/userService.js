@@ -72,6 +72,40 @@ const deleteUserById = async (id, options = {}) => {
     throw error;
   }
 };
+// cloudinary delete
+// const deleteUserById = async (id, options = {}) => {
+//   try {
+//     const existingUser = await User.findOne({
+//       _id: id,
+//     });
+
+//     if (existingUser && existingUser.image) {
+//       const publicId = await publicIdWithoutExtensionFromURL(
+//         existingUser.image,
+//       );
+//       const { result } = await cloudinary.uploader.destroy(
+//         `ecommerceDB/users/${publicId}`,
+//       );
+//       if (result !== "ok") {
+//         throw new Error(
+//           "User Image was not deleted successfully form clodinary . Please try again",
+//         );
+//       }
+//     }
+
+//     await User.findByIdAndDelete({
+//       _id: id,
+//       isAdmin: false,
+//     });
+//     yy;
+//   } catch (error) {
+//     if (error instanceof mongoose.Error.CastError) {
+//       throw createErrors(400, "Invalid Id");
+//     }
+//     throw error;
+//   }
+// };
+//
 const updateUserById = async (userId, req) => {
   try {
     const options = { password: 0 };
@@ -103,7 +137,7 @@ const updateUserById = async (userId, req) => {
       updateOptions,
     ).select("-password");
 
-    if (updatedUser) {
+    if (!updatedUser) {
       throw createErrors(404, "User with this ID does not exist");
     }
     return updatedUser;
@@ -154,7 +188,7 @@ const updateUserPasswordById = async (
 };
 const forgetPasswordByEmail = async (email) => {
   try {
-    const userData = await User.findOne({ enail: email });
+    const userData = await User.findOne({ email: email });
     if (!userData) {
       throw createErrors(
         404,
@@ -199,7 +233,7 @@ const resetPassword = async (token, password) => {
     throw error;
   }
 };
-const handleUserAction = async (userId, action) => {
+const handleUserAction = async (action, userId) => {
   try {
     let update;
     let successMessage;

@@ -3,6 +3,8 @@ const {
   handleCreateProduct,
   handleGetProducts,
   handleGetProduct,
+  handleDeleteProduct,
+  handleUpdateProduct,
 } = require("../controllers/product.controller");
 const { validateProduct } = require("../validators/productValidator");
 const runValidation = require("../validators");
@@ -24,5 +26,15 @@ productRouter.post(
 productRouter.get("/", handleGetProducts);
 // Get/Read Single Product
 productRouter.get("/:slug", handleGetProduct);
+// Delete Single Product
+productRouter.delete("/:slug", isLoggedIn, isAdmin, handleDeleteProduct);
+// Update Single Product
+productRouter.put(
+  "/:slug",
+  uploadProductImage.single("image"),
+  isLoggedIn,
+  isAdmin,
+  handleUpdateProduct,
+);
 
 module.exports = productRouter;

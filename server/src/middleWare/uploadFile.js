@@ -8,18 +8,12 @@ const {
 const userStorage = multer.memoryStorage();
 const fileFilter = (req, file, cb) => {
   if (!ALLOWED_FILE_TYPE.includes(file.mimetype)) {
-    cb(new Error("files type are allowed"), false);
+    return cb(new Error("Invalid file type"), false);
   }
-  // if (file.size > MAX_FILE_SIZE) {
-  //   cb(new Error("File size exceeds the maximum limit"), false);
-  // }
-  // if (!file.ALLOWED_FILE_TYPE.includes(file.mimetype)) {
-  //   cb(new Error("File extension is not allowed"), false);
-  // }
   cb(null, true);
 };
 
-// ********************
+// ******************** 
 const productStorage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, UPLOAD_PRODUCT_IMAGE_DIRECTORY);
@@ -28,19 +22,6 @@ const productStorage = multer.diskStorage({
     cb(null, Date.now() + "-" + file.originalname);
   },
 });
-
-// const fileFilter = (req, file, cb) => {
-//   if (!ALLOWED_FILE_TYPE.includes(file.mimetype)) {
-//     cb(new Error("files type are allowed"), false);
-//   }
-//   //   // if (file.size > MAX_FILE_SIZE) {
-//   //   //   cb(new Error("File size exceeds the maximum limit"), false);
-//   //   // }
-//   //   // if (!file.ALLOWED_FILE_TYPE.includes(file.mimetype)) {
-//   //   //   cb(new Error("File extension is not allowed"), false);
-//   //   // }
-//   //   cb(null, true);
-// };
 
 const uploadUserImage = multer({
   storage: userStorage,

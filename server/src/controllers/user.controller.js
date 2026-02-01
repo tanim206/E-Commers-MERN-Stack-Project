@@ -15,9 +15,11 @@ const {
   updateUserPasswordById,
   forgetPasswordByEmail,
   resetPassword,
+  deleteUserById,
 } = require("../services/userService");
 const checkUserExists = require("../helper/checkUserExists");
 const sendEmail = require("../helper/sendEmail");
+const cloudinary = require("../config/cloudinary");
 
 //  GET all user  Find
 const handleGetUsers = async (req, res, next) => {
@@ -133,9 +135,16 @@ const handleActivateUserAccount = async (req, res, next) => {
           "user with this email already existed. please sign in",
         );
       }
+      // cloudinary
+      const image = decoded.image;
+      if (image) {
+        const response = await cloudinary.uploader.upload(image, {
+          folder: "ecommerceMern",
+        });
+        decoded.image = response.secure_url;
+      }
 
       await User.create(decoded);
-      // console.log(decoded);
       return successResponse(res, {
         statusCode: 201,
         message: `user was registered successfully`,

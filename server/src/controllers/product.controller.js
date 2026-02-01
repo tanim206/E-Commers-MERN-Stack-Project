@@ -1,12 +1,14 @@
-const createErrors = require("http-errors");
 const { successResponse } = require("./res.controller");
-const slugify = require("slugify");
-const Product = require("../models/productModels");
 const {
   createProduct,
   getProducts,
   getProduct,
+  deleteProduct,
+  updateProduct,
 } = require("../services/productService");
+const Product = require("../models/productModels");
+const slugify = require("slugify");
+const { deleteImage } = require("../helper/deleteImage");
 
 const handleCreateProduct = async (req, res, next) => {
   try {
@@ -24,9 +26,15 @@ const handleCreateProduct = async (req, res, next) => {
 };
 const handleGetProducts = async (req, res, next) => {
   try {
+    const search = req.query.search || "";
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 4;
-    const productData = await getProducts(page, limit);
+    const searchRegExp = new RegExp(".*" + search + ".*", "i");
+
+    const filter = {
+      $or: [{ name: { $regex: searchRegExp } }],
+    };
+    const productData = await getProducts(page, limit, filter);
     return successResponse(res, {
       statusCode: 200,
       message: "All Product Returned successfully",
@@ -58,9 +66,37 @@ const handleGetProduct = async (req, res, next) => {
     next(error);
   }
 };
+const handleDeleteProduct = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    await deleteProduct(slug);
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Product Deleted Successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+const handleUpdateProduct = async (req, res, next) => {
+  try {
+    const { slug } = req.params;
+    const updatedProduct = await updateProduct(slug, req);
+
+    return successResponse(res, {
+      statusCode: 200,
+      message: "Product was updated successfully",
+      payload: updatedProduct,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   handleCreateProduct,
   handleGetProducts,
   handleGetProduct,
+  handleDeleteProduct,
+  handleUpdateProduct,
 };

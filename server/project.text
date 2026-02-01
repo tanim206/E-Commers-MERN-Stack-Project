@@ -1,0 +1,105 @@
+# 🛒 E-Commerce API – Postman Guide
+
+## 🌐 Base URL
+http://localhost:5000
+
+## 📮 How to Use (Postman Rules)
+- প্রথমে Login করতে হবে
+- Cookies enabled থাকতে হবে
+- Image থাকলে → form-data
+- Image না থাকলে → raw JSON
+- Header manually multipart/form-data সেট করবেন না
+
+## 🔐 Authentication
+
+### Login
+POST /api/auth/login
+Body → raw → JSON
+{
+  "email": "admin@gmail.com",
+  "password": "Admin123@"
+}
+
+### Refresh Token
+GET /api/auth/refresh-token
+
+### Protected Test
+GET /api/auth/protected
+
+## 👤 Users
+
+### Register
+POST /api/users/process-register
+Body → raw → JSON
+{
+  "name": "Test User",
+  "email": "test@gmail.com",
+  "password": "Test123@",
+  "phone": "01700000000",
+  "address": "Dhaka"
+}
+
+### Get All Users
+GET /api/users
+
+### Get Single User
+GET /api/users/:id
+
+### Update User
+PUT /api/users/:id
+
+### Delete User
+DELETE /api/users/:id
+
+## 🗂️ Categories
+
+### Create Category
+POST /api/categories
+Body → raw → JSON
+{
+  "name": "Mobile"
+}
+
+### Get All Categories
+GET /api/categories
+
+### Get Single Category
+GET /api/categories/:slug
+
+### Update Category
+PUT /api/categories/:slug
+
+### Delete Category
+DELETE /api/categories/:slug
+
+## 📦 Products
+
+### Create Product (with Image)
+POST /api/products
+Body → form-data
+name: iPhone 15
+description: New Model
+price: 120000
+quantity: 10
+category: mobile
+image: (file)
+
+### Get All Products
+GET /api/products
+
+### Search & Pagination
+GET /api/products?search=iphone&page=1&limit=5
+
+### Get Single Product
+GET /api/products/:slug
+
+### Update Product
+PUT /api/products/:slug
+Body → form-data (same as create)
+
+### Delete Product
+DELETE /api/products/:slug
+
+## 🌱 Seed (Dev Only)
+GET /api/seed/users
+GET /api/seed/products

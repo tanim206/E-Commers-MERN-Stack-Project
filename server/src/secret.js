@@ -5,7 +5,6 @@ const mongodbURL =
 
 const defaultImagePath =
   process.env.DEFAULT_USER_IMAGE_PATH || "/public/image/users/default.png";
-
 const jwtActivationKey = process.env.JWT_ACTIVATION_KEY || "tanim2HJGFH026r";
 const jwtAccessKey = process.env.JWT_ACCESS_KEY || "tanim2HJGFH026r";
 const jwtRefreshKey = process.env.JWT_REFRESH_KEY || "tanim2HJGFH026r";
